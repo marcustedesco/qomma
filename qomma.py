@@ -12,21 +12,22 @@ for filename in os.listdir(path):
     if filename.endswith('.csv'):
         # process the csv file rows
         rows = []
+        column_names = []
         line_count = 0
-        keys = []
         lines = open(path+filename, 'r')
         for line in lines:
-            columns = line.split(',')
-            strip_columns = [item.strip(' \t\n\r') for item in columns]
+            items = line.split(',')
+            stripped_items = [item.strip(' \t\n\r') for item in items]
             if(line_count == 0):
-                # print('keys: '+line)
-                keys = strip_columns
+                # print('column_names: '+line)
+                column_names = stripped_items
             else:
                 # print(line) 
                 row = {}
                 column_num = 0
-                for item in strip_columns:
-                    row[keys[column_num]] = item
+                for item in stripped_items:
+                    # assuming that there will not be any empty values in the rows
+                    row[column_names[column_num]] = item
                     column_num += 1
                 rows.append(row)
             line_count += 1
@@ -45,6 +46,7 @@ while True:
     if(s.startswith('\q')):
         # what is the best practice here?
         quit()
+    # TODO: turn this into a function
     elif(s.startswith('select *')):
         for table_name in tables:
             table = tables[table_name]
