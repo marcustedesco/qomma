@@ -138,18 +138,34 @@ def query_parser(sql_query):
 def process_query(parsed_query, tables):
     output_table = []
     table = tables[parsed_query['FROM']]
-    
+
     for row in table:
         # filter WHERE conditionals
         match = True
-        for conditional in parsed_query['WHERE']:
-            if(row[conditional['column']].lower() != conditional['value']):
-                match = False
+        if 'WHERE' in parsed_query:
+            # check all the AND conditionals
+
+            # if True skip OR
+            # if False need an OR to be True
+
+            for conditional in parsed_query['WHERE']:
+                value = row[conditional['column']].lower()
+                if(conditional['operator'] == '='):
+                    if(value != conditional['value']):
+                        match = False
+                elif(conditional['operator'] == '>'):
+                    if(value <= conditional['value']):
+                        match = False
+                elif(conditional['operator'] == '<'):
+                    if(value >= conditional['value']):
+                        match = False
+                else:
+                    match = False
 
         # get SELECT columns
-        if(match):
+        if match:
             selected_values = {}
-            if('*' in parsed_query['SELECT']):
+            if '*' in parsed_query['SELECT']:
                 selected_values = row
             else:
                 for attr in parsed_query['SELECT']:
@@ -158,6 +174,7 @@ def process_query(parsed_query, tables):
     
     return output_table
 
+# Prints the query result table without columns
 def print_table(table):
     for row in table:
         values = []
@@ -168,8 +185,8 @@ def print_table(table):
 # TODO: come up with better name, this is used to parse rows
 def str_to_array(string):
     items = string.split(',')
-    stripped_items = [item.strip(' \t\n\r') for item in items]
-    return stripped_items
+    items = [item.strip(' \t\n\r') for item in items]
+    return items
 
 if __name__ == '__main__':
     main()
