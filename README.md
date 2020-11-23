@@ -6,9 +6,16 @@ SQL queries against CSV data using Python
 ## Assumptions
 1. Importing os and sys is allowed
 2. There are no empty values in the data rows
+3. WHERE columns names do not have to be in the SELECT list
 
 ## How to use
-Run `./qomma.py <directory>`
+Load a directory containing .csv files: 
+
+`./qomma.py csv-samples`
+
+`./qomma.py ./csv-samples/`
+
+`./qomma.py /<path>/my-directory/`
 
 ## Data structures
 
