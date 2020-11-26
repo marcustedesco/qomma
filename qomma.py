@@ -8,7 +8,21 @@ def main():
     directory = os.path.basename(os.path.normpath(path))
     handle_input_queries(directory, tables)
 
-# Loads CSV files into memory
+# Loads CSV files
+# Returns a tables object
+# {
+#     "table_name_1": [
+#         {
+#             "column_name_1": value1
+#             "column_name_2": value2
+#         },
+#         {
+#             "column_name_1": value3
+#             "column_name_2": value4
+#         }
+#     ],
+#     etc...
+# }
 def load_csv_files(path):
     tables = {}
     for filename in os.listdir(path):
@@ -41,6 +55,7 @@ def load_csv_files(path):
     return tables
 
 # Runtime loop after load
+# Returns None
 def handle_input_queries(directory, tables):
     while True:
         # Output the directory name and wait for input
@@ -53,6 +68,7 @@ def handle_input_queries(directory, tables):
             output_table = run_query(parsed_query, tables)
             print_table(output_table)
 
+# Parses a query str to an object that can be used to run the query on the data
 # Returns a query object 
 # {
 #     "FROM": table_value,
@@ -79,7 +95,11 @@ def parse_query(sql_query):
 
     # Split the query into parts using comma and spaces as delimiters
     terms = sql_query[:semi_index]
-    terms = terms.replace(',',' ').replace('\'',' ').replace('=',' = ').replace('>',' > ').replace('<',' < ')
+    # Replace commas and quotes with spaces
+    # TODO: Refactor parse logic to keep quoted strings together
+    terms = terms.replace(',',' ').replace('\'',' ').replace('‘',' ').replace('\"',' ')
+    # Pad operators with space
+    terms = terms.replace('=',' = ').replace('>',' > ').replace('<',' < ')
     terms = " ".join(terms.split()).split(' ')
     terms = [term.strip(' \t\n\r') for term in terms]
 
@@ -104,6 +124,8 @@ def parse_query(sql_query):
                 elif terms[i+1] == 'or':
                     conjunction = 'OR'
                     i+=1
+                # Assumes SQL query follows fixed pattern 
+                # Currently does not support quoted values with spaces or commas
                 parsed_query['WHERE'].append({
                     'conjunction': conjunction,
                     'column': terms[i+1],
@@ -117,6 +139,7 @@ def parse_query(sql_query):
 
 # Determines the output of the SQL query against the db
 # Supports SELECT, FROM, WHERE, AND, OR
+# Returns list of row objects
 def run_query(parsed_query, tables):
     output_table = []
     table = tables[parsed_query['FROM']]
@@ -149,6 +172,7 @@ def run_query(parsed_query, tables):
     return output_table
 
 # Evaluates the result of the WHERE conditional statement on a row
+# Returns True or False
 def eval_expression(row, expression):
     row_value = row[expression['column']].lower()
     if(expression['operator'] == '='):
@@ -164,6 +188,7 @@ def eval_expression(row, expression):
         return False
 
 # Prints the query result table without columns
+# Returns None
 def print_table(table):
     for row in table:
         values = []
@@ -171,7 +196,8 @@ def print_table(table):
             values.append(row[key])
         print(', '.join(values))
 
-# Parse line of the CSV from string to space and comma delimited array
+# Parse line of the CSV from a space and comma delimited string to a list
+# Returns list of str
 def parse_line(row):
     items = row.split(',')
     items = [item.strip(' \t\n\r') for item in items]

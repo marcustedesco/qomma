@@ -15,13 +15,23 @@ Supports SELECT, FROM, WHERE, AND, OR
     Errors resulting from queries not matching this pattern will not be handled.
 
 ## How to use
-Load a directory containing .csv files: 
+1. Load a directory containing .csv files: 
+    
+    `./qomma.py csv-samples`
 
-`./qomma.py csv-samples`
+    `./qomma.py ./csv-samples/`
 
-`./qomma.py ./csv-samples/`
+    `./qomma.py /<path>/my-directory/`
 
-`./qomma.py /<path>/my-directory/`
+    `python3 qomma.py csv_samples/`
+
+2. Run your SQL query using pattern:
+
+    `SELECT columns FROM table WHERE column conditional value AND/OR column conditional value;`
+
+3. Quit the application:
+
+    `\q`
 
 ## Data structures
 
@@ -69,3 +79,12 @@ Load a directory containing .csv files:
     ]
 }
 ```
+
+## Issues
+
+1. Does not support conditional values containing spaces. Example: 
+
+    `AND company = 'id Software';`
+
+2. Is not properly unit tested
+3. Functions could use more parameter and return type documentation
