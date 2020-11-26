@@ -3,7 +3,7 @@
 ## Description
 SQL queries against CSV data using Python
 
-Supports SELECT, FROM, WHERE, AND, OR
+Supports SELECT, FROM, WHERE, AND, OR with =, <, and >
 
 ## Assumptions
 1. Importing os and sys is allowed
@@ -17,11 +17,11 @@ Supports SELECT, FROM, WHERE, AND, OR
 ## How to use
 1. Load a directory containing .csv files: 
     
-    `./qomma.py csv-samples`
+    `./qomma.py csv_samples`
 
-    `./qomma.py ./csv-samples/`
+    `./qomma.py ./csv_samples/`
 
-    `./qomma.py /<path>/my-directory/`
+    `./qomma.py /<path>/my_directory/`
 
     `python3 qomma.py csv_samples/`
 
@@ -87,4 +87,4 @@ Supports SELECT, FROM, WHERE, AND, OR
     `AND company = 'id Software';`
 
 2. Is not properly unit tested
-3. Functions could use more parameter and return type documentation
+3. Could use more parameter and return type documentation
