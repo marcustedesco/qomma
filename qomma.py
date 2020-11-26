@@ -6,34 +6,34 @@ def main():
     path = sys.argv[1]
     tables = load_csv_files(path)
     directory = os.path.basename(os.path.normpath(path))
-    input_queries(directory, tables)
+    handle_input_queries(directory, tables)
 
 # Loads CSV files into memory
 def load_csv_files(path):
     tables = {}
     for filename in os.listdir(path):
         if filename.endswith('.csv'):
-            # process the csv file rows
+            # Process the CSV file rows
             rows = []
             column_names = []
             line_count = 0
             lines = open(path+filename, 'r')
             for line in lines:
-                stripped_items = str_to_array(line)
+                parsed_line = parse_line(line)
                 if(line_count == 0):
-                    column_names = [item.lower() for item in stripped_items]
+                    column_names = [item.lower() for item in parsed_line]
                 else:
                     row = {}
-                    column_num = 0
-                    for item in stripped_items:
-                        # assuming that there will not be any empty values in the rows
-                        row[column_names[column_num]] = item
-                        column_num += 1
+                    j = 0
+                    while j < len(parsed_line):
+                        # Assuming that there will not be any empty values in the rows
+                        row[column_names[j]] = parsed_line[j]
+                        j += 1
                     rows.append(row)
                 line_count += 1
             tables[filename.replace('.csv','')] = rows
 
-    # print csv load summary
+    # Print CSV load summary
     print(len(tables.keys()), 'table(s) found:')
     for table in tables:
         print(table)
@@ -41,35 +41,47 @@ def load_csv_files(path):
     return tables
 
 # Runtime loop after load
-def input_queries(directory, tables):
+def handle_input_queries(directory, tables):
     while True:
-        # output the directory name and wait for input
+        # Output the directory name and wait for input
         sql_query = input('\n'+directory+'=# ').lower()
 
         if(sql_query.startswith('\q')):
             quit()
         else: 
-            parsed_query = query_parser(sql_query)
-            print(parsed_query)
-            # retired parser
-            # parsed_query = parse_query(sql_query)
-            output_table = process_query(parsed_query, tables)
+            parsed_query = parse_query(sql_query)
+            output_table = run_query(parsed_query, tables)
             print_table(output_table)
 
-#  Returns query object 
-def query_parser(sql_query):
+# Returns a query object 
+# {
+#     "FROM": table_value,
+#     "SELECT": [
+#         column_name_1,
+#         column_name_2
+#     ],
+#     "WHERE": [
+#         {
+#             "conjunction": "AND" | "OR" | None,
+#             "column": column_name_2,
+#             "operator": "=" | ">" | "<",
+#             "value": val
+#         }
+#     ]
+# }
+def parse_query(sql_query):
     parsed_query = {}
 
-    # SEMICOLON 
+    # Find the end of the query
     semi_index = sql_query.find(';')
     if(semi_index == -1):
         sys.exit('Error: missing closing semicolon')
 
     # Split the query into parts using comma and spaces as delimiters
-    terms = " ".join(sql_query[:semi_index].replace(',',' ').split()).split(' ')
+    terms = sql_query[:semi_index]
+    terms = terms.replace(',',' ').replace('\'',' ').replace('=',' = ').replace('>',' > ').replace('<',' < ')
+    terms = " ".join(terms.split()).split(' ')
     terms = [term.strip(' \t\n\r') for term in terms]
-
-    print(terms)   
 
     i = 0
     while i < len(terms):
@@ -80,17 +92,20 @@ def query_parser(sql_query):
                 i+=1
             parsed_query['SELECT'] = select_attr
         elif(terms[i] == 'from'):
-            # Make sure theres another term in the list
-            # if(i+1 < len(terms)):
             parsed_query['FROM'] = terms[i+1]
             i+=1
         elif(terms[i] == 'where'):
-            # This structure needs to be rethought
             parsed_query['WHERE'] = []
-            # only support '=' operator with space around it
-            # TODO: add quote suport
-            while i+1 < len(terms) and terms[i+1] != 'and' and terms[i+1] != 'or':
+            while i+1 < len(terms): 
+                conjunction = None
+                if terms[i+1] == 'and':
+                    conjunction = 'AND'
+                    i+=1
+                elif terms[i+1] == 'or':
+                    conjunction = 'OR'
+                    i+=1
                 parsed_query['WHERE'].append({
+                    'conjunction': conjunction,
                     'column': terms[i+1],
                     'operator': terms[i+2],
                     'value': terms[i+3]
@@ -100,69 +115,28 @@ def query_parser(sql_query):
 
     return parsed_query
 
-
-# TODO: refactor to use a tree structure
-# def parse_query(sql_query):
-#     parsed_query = {}
-
-#     # SEMICOLON 
-#     semi_index = sql_query.find(';')
-#     if(semi_index == -1):
-#         sys.exit('Error: missing closing semicolon')
-
-#     # SELECT
-#     select_index = sql_query.find('select')
-#     if(select_index == -1):
-#         sys.exit('Error: missing SELECT statement')
-#     from_index = sql_query.find('from')
-#     if(from_index == -1):
-#         sys.exit('Error: missing FROM statement')
-#     select_attr_str = sql_query[select_index+6:from_index]
-#     select_attr = str_to_array(select_attr_str)
-#     if('*' in select_attr):
-#         parsed_query['SELECT'] = ['*']
-#     else:
-#         parsed_query['SELECT'] = select_attr
-
-#     # FROM
-#     from_attr_str = sql_query[from_index+4:semi_index]
-#     parsed_query['FROM'] = from_attr_str.strip(' \t\n\r')
-
-#     return parsed_query
-
-    # WHERE support
-    # where_index = sql_query.find('where')
-    # if(where_index != -1)
-
-# Supports SELECT, FROM
-def process_query(parsed_query, tables):
+# Determines the output of the SQL query against the db
+# Supports SELECT, FROM, WHERE, AND, OR
+def run_query(parsed_query, tables):
     output_table = []
     table = tables[parsed_query['FROM']]
 
     for row in table:
-        # filter WHERE conditionals
         match = True
+
+        # Filter by WHERE expressions
         if 'WHERE' in parsed_query:
-            # check all the AND conditionals
-
-            # if True skip OR
-            # if False need an OR to be True
-
-            for conditional in parsed_query['WHERE']:
-                value = row[conditional['column']].lower()
-                if(conditional['operator'] == '='):
-                    if(value != conditional['value']):
-                        match = False
-                elif(conditional['operator'] == '>'):
-                    if(value <= conditional['value']):
-                        match = False
-                elif(conditional['operator'] == '<'):
-                    if(value >= conditional['value']):
-                        match = False
+            for expression in parsed_query['WHERE']:
+                # If this is the first expression
+                if expression['conjunction'] == None:
+                    match = eval_expression(row, expression)
                 else:
-                    match = False
+                    if expression['conjunction'] == 'AND':
+                        match = match and eval_expression(row, expression)
+                    elif expression['conjunction'] == 'OR':
+                        match = match or eval_expression(row, expression)
 
-        # get SELECT columns
+        # Get SELECT columns
         if match:
             selected_values = {}
             if '*' in parsed_query['SELECT']:
@@ -174,6 +148,21 @@ def process_query(parsed_query, tables):
     
     return output_table
 
+# Evaluates the result of the WHERE conditional statement on a row
+def eval_expression(row, expression):
+    row_value = row[expression['column']].lower()
+    if(expression['operator'] == '='):
+        if(row_value == expression['value']):
+            return True
+    elif(expression['operator'] == '>'):
+        if(row_value > expression['value']):
+            return True
+    elif(expression['operator'] == '<'):
+        if(row_value < expression['value']):
+            return True
+    else:
+        return False
+
 # Prints the query result table without columns
 def print_table(table):
     for row in table:
@@ -182,9 +171,9 @@ def print_table(table):
             values.append(row[key])
         print(', '.join(values))
 
-# TODO: come up with better name, this is used to parse rows
-def str_to_array(string):
-    items = string.split(',')
+# Parse line of the CSV from string to space and comma delimited array
+def parse_line(row):
+    items = row.split(',')
     items = [item.strip(' \t\n\r') for item in items]
     return items
 
