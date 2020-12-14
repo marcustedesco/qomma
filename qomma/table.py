@@ -34,15 +34,7 @@ class Table:
                 self.column_names = tuple([item.lower() for item in parsed_line])
             else:
                 self.rows.append(tuple(parsed_line))
-                # row = {}
-                # j = 0
-                # while j < len(parsed_line):
-                #     # Assuming that there will not be any empty values in the rows
-                #     row[column_names[j]] = parsed_line[j]
-                #     j += 1
-                # rows.append(row)
             line_count += 1
-        # tables[filename.replace('.csv','')] = rows
 
     def parse_line(self, row: str) -> list:
         """Parses a string representing a comma-delimited line in the CSV file
