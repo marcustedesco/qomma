@@ -71,11 +71,5 @@ class Query:
                     # Assumes SQL query follows fixed pattern 
                     # Currently does not support quoted values with spaces or commas
                     self.WHERE.append(Expression(conjunction, terms[i+1], terms[i+2], terms[i+3]))
-                    # self.WHERE.append({
-                    #     'conjunction': conjunction,
-                    #     'column': terms[i+1],
-                    #     'operator': terms[i+2],
-                    #     'value': terms[i+3]
-                    # })
                     i+=3
             i+=1
