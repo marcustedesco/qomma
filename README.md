@@ -15,15 +15,15 @@ Supports SELECT, FROM, WHERE, AND, OR with =, <, and >
     Errors resulting from queries not matching this pattern will not be handled.
 
 ## How to use
-1. Load a directory containing .csv files: 
+1. `pip install setuptools`
+2. `python3 setup.py install`
+3. Load a directory containing .csv files: 
     
-    `./qomma.py csv_samples`
+    `qomma csv_samples`
 
-    `./qomma.py ./csv_samples/`
+    `qomma ./csv_samples/`
 
-    `./qomma.py /<path>/my_directory/`
-
-    `python3 qomma.py csv_samples/`
+    `qomma /<path>/my_directory/`
 
 2. Run your SQL query using pattern:
 
@@ -33,52 +33,8 @@ Supports SELECT, FROM, WHERE, AND, OR with =, <, and >
 
     `\q`
 
-## Data structures
-
-### Tables dictionary
-```
-{
-    "table_name_1": [
-        {
-            "column_name_1": value1
-            "column_name_2": value2
-        },
-        {
-            "column_name_1": value3
-            "column_name_2": value4
-        }
-    ],
-    "table_name_2": [
-        {
-            "column_name_A": valueA
-            "column_name_B": valueB
-        },
-        {
-            "column_name_A": valueC
-            "column_name_B": valueD
-        }
-    ]
-}
-```
-
-### Parsed SQL query dictionary
-```
-{
-    "FROM": table_value,
-    "SELECT": [
-        column_name_1,
-        column_name_2
-    ],
-    "WHERE": [
-        {
-            "conjunction": "AND" | "OR" | None,
-            "column": column_name_2,
-            "operator": "=" | ">" | "<",
-            "value": val
-        }
-    ]
-}
-```
+## Local dev
+1. `python3 -m qomma csv_samples`
 
 ## Issues
 
@@ -88,3 +44,11 @@ Supports SELECT, FROM, WHERE, AND, OR with =, <, and >
 
 2. Is not properly unit tested
 3. Could use more parameter and return type documentation
+
+## Refactor
+
+1. Uses modules and classes to have proper seperation of concerns
+2. Changed the tables dict to use Table as the value instead of an array of dicts. Made the column names and row values into tuples to ensure that the data is immutatable and to save space. Previously stored the column names with every row dict as key-value pairs which was inefficient at scale. 
+3. Uses setup.py to make the package executable from the command line
+4. Added type hints
+5. Added some documentation of the functions
